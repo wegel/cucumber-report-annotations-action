@@ -1,7 +1,7 @@
 name: PR check
 
 on:
-  pull_request:
+  push:
 
 jobs:
   check-build-files-in-commit:

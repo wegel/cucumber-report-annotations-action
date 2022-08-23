@@ -12545,6 +12545,7 @@ function wrappy (fn, cb) {
 /***/ 4010:
 /***/ ((module) => {
 
+
 const EMPTY_GLOBAL_INFO = {
     scenarioNumber: 0,
     failedScenarioNumber: 0,
@@ -12917,10 +12918,12 @@ function memoize(fn) {
 }
 
 async function findBestFileMatch(file) {
+
     let searchFile = file;
     if (searchFile.startsWith('classpath:')) {
         searchFile = searchFile.substring(10);
     }
+    core.info("Searching for best match for " + file);
     const globber = await glob.create('**/' + searchFile, {
         followSymbolicLinks: false,
     });
@@ -12930,8 +12933,12 @@ async function findBestFileMatch(file) {
         const repoName = github.context.repo.repo;
         const indexOfRepoName = featureFile.indexOf(repoName);
         const filePathWithoutWorkspace = featureFile.substring(indexOfRepoName + repoName.length * 2 + 2);
+
+        core.info("Found best match for " + file + ": " + filePathWithoutWorkspace);
         return filePathWithoutWorkspace;
     }
+
+    core.info("No best match found for " + file);
 
     return undefined;
 }
@@ -12940,7 +12947,7 @@ const memoizedFindBestFileMatch = memoize(findBestFileMatch)
 
 async function buildStepAnnotation(cucumberError, status, errorType) {
     return {
-        path: (await memoizedFindBestFileMatch(cucumberError.file)) || cucumberError.file,
+        path: (await memoizedFindBestFileMatch(cucumberError.file)) || null,
         start_line: cucumberError.line || 0,
         end_line: cucumberError.line || 0,
         start_column: 0,
@@ -12979,10 +12986,10 @@ async function buildPendingAnnotation(cucumberError, statusOnPending) {
         followSymbolicLinks: false,
     });
 
-    core.info("start to read cucumber logs using path " + inputPath);
+    core.info("Searching for Cucumber reports in: " + inputPath);
 
     for await (const cucumberReportFile of globber.globGenerator()) {
-        core.info("found cucumber report " + cucumberReportFile);
+        core.info("Found cucumber report at:" + cucumberReportFile);
 
         const reportResultString = await fs.promises.readFile(cucumberReportFile);
         const reportResult = JSON.parse(reportResultString);
