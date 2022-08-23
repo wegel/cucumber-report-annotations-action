@@ -16,10 +16,12 @@ function memoize(fn) {
 }
 
 async function findBestFileMatch(file) {
+
     let searchFile = file;
     if (searchFile.startsWith('classpath:')) {
         searchFile = searchFile.substring(10);
     }
+    core.info("Searching for best match for " + file);
     const globber = await glob.create('**/' + searchFile, {
         followSymbolicLinks: false,
     });
@@ -29,8 +31,12 @@ async function findBestFileMatch(file) {
         const repoName = github.context.repo.repo;
         const indexOfRepoName = featureFile.indexOf(repoName);
         const filePathWithoutWorkspace = featureFile.substring(indexOfRepoName + repoName.length * 2 + 2);
+
+        core.info("Found best match for " + file + ": " + filePathWithoutWorkspace);
         return filePathWithoutWorkspace;
     }
+
+    core.info("No best match found for " + file);
 
     return undefined;
 }
